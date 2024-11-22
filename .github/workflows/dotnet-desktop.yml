@@ -37,8 +37,14 @@ jobs:
       run: dotnet build pexeso-client -r win-x64 -o ${{ env.client-directory }} && dotnet build pexeso-client -r linux-x64 -o ${{ env.client-directory }} && dotnet build pexeso-client -r osx-x64 -o ${{ env.client-directory }}
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
+    - name: Upload server build
       uses: actions/upload-artifact@v3
       with:
         name: builds
-        path: ${{ env.builds-directory }}
+        path: ${{ env.server-directory }}
+        
+    - name: Upload client build
+      uses: actions/upload-artifact@v3
+      with:
+        name: builds
+        path: ${{ env.client-directory }}
