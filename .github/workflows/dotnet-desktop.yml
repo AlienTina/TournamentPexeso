@@ -50,9 +50,9 @@ jobs:
     runs-on: ubuntu-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     env:
-      builds-directory: ./builds/
-      server-directory: $env:builds-directory/server-build/
-      client-directory: $env:builds-directory/client-build/
+      builds-directory: ./builds
+      server-directory: $env:builds-directory/server-build
+      client-directory: $env:builds-directory/client-build
     
     steps:
     - name: Checkout
