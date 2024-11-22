@@ -67,9 +67,6 @@ jobs:
     - name: Install .NET
       run: sudo apt-get install -y dotnet-sdk-8.0
 
-    - name: Install Fonts
-      run: sudo apt-get install ttf-mscorefonts-installer
-      
     # Create the app package by building and packaging the Windows Application Packaging project
     - name: Build server
       run: dotnet build pexeso-server -r win-x64 -o $env:server-directory && dotnet build pexeso-server -r linux-x64 -o $env:server-directory && dotnet build pexeso-server -r osx-x64 -o $env:server-directory
