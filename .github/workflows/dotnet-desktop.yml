@@ -72,7 +72,7 @@ jobs:
       run: dotnet build pexeso-server -r win-x64 -o $env:server-directory && dotnet build pexeso-server -r linux-x64 -o $env:server-directory && dotnet build pexeso-server -r osx-x64 -o $env:server-directory
     
     - name: Build client
-      run: dotnet build pexeso-client -r win-x64 -o $env:client-directory && dotnet build pexeso-client -r linux-x64 -o $env:client-directory && dotnet build client-server -r osx-x64 -o $env:client-directory
+      run: dotnet build pexeso-client -r win-x64 -o $env:client-directory && dotnet build pexeso-client -r linux-x64 -o $env:client-directory && dotnet build pexeso-client -r osx-x64 -o $env:client-directory
 
     # Remove the pfx
     - name: Remove the pfx
