@@ -74,10 +74,6 @@ jobs:
     - name: Build client
       run: dotnet build pexeso-client -r win-x64 -o $env:client-directory && dotnet build pexeso-client -r linux-x64 -o $env:client-directory && dotnet build pexeso-client -r osx-x64 -o $env:client-directory
 
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
-
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
