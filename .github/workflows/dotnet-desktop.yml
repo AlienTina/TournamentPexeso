@@ -1,42 +1,4 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
-# built on .NET Core.
-# To learn how to migrate your existing application to .NET Core,
-# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
-#
-# To configure this workflow:
-#
-# 1. Configure environment variables
-# GitHub sets default environment variables for every workflow run.
-# Replace the variables relative to your project in the "env" section below.
-#
-# 2. Signing
-# Generate a signing certificate in the Windows Application
-# Packaging Project or add an existing signing certificate to the project.
-# Next, use PowerShell to encode the .pfx file using Base64 encoding
-# by running the following Powershell script to generate the output string:
-#
-# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
-# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
-#
-# Open the output file, SigningCertificate_Encoded.txt, and copy the
-# string inside. Then, add the string to the repo as a GitHub secret
-# and name it "Base64_Encoded_Pfx."
-# For more information on how to configure your signing certificate for
-# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
-#
-# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
-# See "Build the Windows Application Packaging project" below to see how the secret is used.
-#
-# For more information on GitHub Actions, refer to https://github.com/features/actions
-# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
-# refer to https://github.com/microsoft/github-actions-for-desktop-apps
-
-name: .NET Core Desktop
+name: .NET Desktop
 
 on:
   push:
@@ -50,11 +12,14 @@ jobs:
     runs-on: ubuntu-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     env:
-      builds-directory: ./builds/
-      server-directory: $env:builds-directory/server-build/
-      client-directory: $env:builds-directory/client-build/
+      builds-directory: ./builds
+      server-directory: ./builds/server-build
+      client-directory: ./builds/client-build
     
     steps:
+    - name: Debug
+      run: echo ${{ env.server-directory }}
+    
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -64,23 +29,22 @@ jobs:
     - name: Install .NET
       run: sudo apt-get install -y dotnet-sdk-8.0
 
-    - name: Install Fonts
-      run: sudo apt-get install ttf-mscorefonts-installer
-      
     # Create the app package by building and packaging the Windows Application Packaging project
     - name: Build server
-      run: dotnet build pexeso-server -r win-x64 -o $env:server-directory && dotnet build pexeso-server -r linux-x64 -o $env:server-directory && dotnet build pexeso-server -r osx-x64 -o $env:server-directory
+      run: dotnet build pexeso-server -r win-x64 -o ${{ env.server-directory }}/win-x64 && dotnet build pexeso-server -r linux-x64 -o ${{ env.server-directory }}/linux-x64 && dotnet build pexeso-server -r osx-x64 -o ${{ env.server-directory }}/osx-x64
     
     - name: Build client
-      run: dotnet build pexeso-client -r win-x64 -o $env:client-directory && dotnet build pexeso-client -r linux-x64 -o $env:client-directory && dotnet build client-server -r osx-x64 -o $env:client-directory
-
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+      run: dotnet build pexeso-client -r win-x64 -o ${{ env.client-directory }}/win-x64 && dotnet build pexeso-client -r linux-x64 -o ${{ env.client-directory }}/linux-x64 && dotnet build pexeso-client -r osx-x64 -o ${{ env.client-directory }}/osx-x64
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
+    - name: Upload server build
       uses: actions/upload-artifact@v3
       with:
-        name: builds
-        path: ${{ env.builds-directory }}
+        name: server_builds
+        path: ${{ env.server-directory }}
+        
+    - name: Upload client build
+      uses: actions/upload-artifact@v3
+      with:
+        name: client_builds
+        path: ${{ env.client-directory }}
