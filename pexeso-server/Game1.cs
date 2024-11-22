@@ -93,6 +93,7 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     Texture2D cardBackSprite;
     SpriteFont lobbyFont;
+    SpriteFont turnFont;
     int cardAmount = 11;
     int cardSize = 128;
     int margin = 8;
@@ -124,6 +125,10 @@ public class Game1 : Game
 
     public void InitGrid()
     {
+        scores[0] = 0;
+        scores[1] = 0;
+        winningPlayer = 0;
+        turn = 0;
         cardsOnGrid = gridWidth * gridHeight;
         grid = new int[gridWidth, gridHeight];
         int cardType = 1;
@@ -150,6 +155,10 @@ public class Game1 : Game
             cardType++;
             if (cardType > cardAmount) cardType = 1;
         }
+
+        UpdateGrid();
+        _match.SendToAll("resetTurn");
+        _match.players[turn].Context.WebSocket.Send("yourTurn");
     }
 
     protected override void Initialize()
@@ -174,6 +183,7 @@ public class Game1 : Game
             cardSprites.Add(Content.Load<Texture2D>($"./sprites/{i}"));
         }
         lobbyFont = Content.Load<SpriteFont>("Lobby");
+        turnFont = Content.Load<SpriteFont>("Turn");
         // TODO: use this.Content to load your game content here
     }
 
@@ -196,13 +206,11 @@ public class Game1 : Game
                     revealedCards.Clear();
                     _match.SendToAll("clearRevealedCards");
                     scores[player]++;
-                    turn++;
-                    if(turn >= _match.players.Count) turn = 0;
+                    NextTurn();
                 }
                 else
                 {
-                    turn++;
-                    if(turn >= _match.players.Count) turn = 0;
+                    NextTurn();
                 }
                 
             }
@@ -254,14 +262,23 @@ public class Game1 : Game
         {
             for (int x = 0; x < gridWidth; x++)
             {
-                _match.SendToAll($"card:{x},{y},{grid[x,y]}");
+                _match.SendToAll($"card:{x},{y},{Math.Clamp(grid[x,y], 0, 1)}");
             }
         }
         foreach (Vector2 revealedCard in revealedCards)
         {
             
             _match.SendToAll($"revealedCard:{revealedCard.X},{revealedCard.Y}");
+            _match.SendToAll($"card:{revealedCard.X},{revealedCard.Y},{grid[(int)revealedCard.X,(int)revealedCard.Y]}");
         }
+    }
+
+    void NextTurn()
+    {
+        turn++;
+        if(turn >= _match.players.Count) turn = 0;
+        _match.SendToAll("resetTurn");
+        _match.players[turn].Context.WebSocket.Send("yourTurn");
     }
 
     protected override void Update(GameTime gameTime)
@@ -273,6 +290,18 @@ public class Game1 : Game
         {
         }
         else if (gameState == GameState.LOBBY)
+        {
+            if (playersConnected == 2)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+                {
+                    InitGrid();
+                    gameState = GameState.INGAME;
+                    _match.SendToAll("GameStarted");
+                }
+            }
+        }
+        else if (gameState == GameState.WINSCREEN)
         {
             if (playersConnected == 2)
             {
@@ -322,6 +351,24 @@ public class Game1 : Game
                     }
                 }
             }
+            Color player1Color = Color.Orange;
+            SpriteFont player1Font = lobbyFont;
+            if (turn == 0)
+            {
+                player1Color = Color.Lime;
+                player1Font = turnFont;
+            }
+            _spriteBatch.DrawString(player1Font, $"{_match.players[0]._username}:{scores[0]}", Vector2.One * 10, player1Color);
+            string player2Text = $"{_match.players[1]._username}:{scores[1]}";
+            Color player2Color = Color.Pink;
+            SpriteFont player2Font = lobbyFont;
+            if (turn == 1)
+            {
+                player2Color = Color.Lime;
+                player2Font = turnFont;
+            }
+            _spriteBatch.DrawString(player2Font, player2Text, new Vector2(_graphics.PreferredBackBufferWidth - (12 * player2Text.Length), 10), player2Color);
+
         }
         else if (gameState == GameState.LOBBY)
         {
@@ -346,7 +393,7 @@ public class Game1 : Game
             }
             else
             {
-                _spriteBatch.DrawString(lobbyFont, $"{_match.players[winningPlayer - 1]._username} won!",
+                _spriteBatch.DrawString(lobbyFont, $"{_match.players[winningPlayer - 1]._username} won! \n Press Enter to start a new round.",
                     new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2),
                     Color.Black);
             }

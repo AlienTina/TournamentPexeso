@@ -87,6 +87,14 @@ public class MultiplayerManager
             int id = Convert.ToInt32(e.Data.Split("id:")[1]);
             this.id = id;
         }
+        else if (e.Data.StartsWith("resetTurn"))
+        {
+            _instance.myTurn = false;
+        }
+        else if (e.Data.StartsWith("yourTurn"))
+        {
+            _instance.myTurn = true;
+        }
     }
 }
 
@@ -107,7 +115,7 @@ public class Game1 : Game
     int cardsOnGrid;
     public int[,] grid;
 
-    int turn = 0;
+    public bool myTurn = false;
 
     private List<int> scores = new List<int>() { 0, 0 };
 
@@ -138,25 +146,14 @@ public class Game1 : Game
         resetWindowSize();
         cardsOnGrid = gridWidth * gridHeight;
         grid = new int[gridWidth,gridHeight];
-        int cardType = 1;
-        for(int i = 0; i < cardsOnGrid / 2; i++){
-            int x = _rand.Next(0, gridWidth);
-            int y = _rand.Next(0, gridHeight);
-            while(grid[x,y] != 0){
-                x = _rand.Next(0, gridWidth);
-                y = _rand.Next(0, gridHeight);
+        for (int y = 0; y < gridHeight; y++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                grid[x, y] = 1;
             }
-            grid[x,y] = cardType;
-            x = _rand.Next(0, gridWidth);
-            y = _rand.Next(0, gridHeight);
-            while(grid[x,y] != 0){
-                x = _rand.Next(0, gridWidth);
-                y = _rand.Next(0, gridHeight);
-            }
-            grid[x,y] = cardType;
-            cardType++;
-            if(cardType>cardAmount) cardType = 1;
         }
+
         base.Initialize();
     }
 
@@ -198,6 +195,8 @@ public class Game1 : Game
         _spriteBatch.Begin();
         if (gameState == GameState.INGAME)
         {
+            Color backColor = Color.Gray;
+            if(myTurn) backColor = Color.White;
             for (int y = 0; y < gridHeight; y++)
             {
                 for (int x = 0; x < gridWidth; x++)
@@ -218,7 +217,7 @@ public class Game1 : Game
                     if (revealed == false)
                     {
                         _spriteBatch.Draw(cardBackSprite,
-                            new Vector2(x * cardSize + (margin * x), y * cardSize + (margin * y)), Color.White);
+                            new Vector2(x * cardSize + (margin * x), y * cardSize + (margin * y)), backColor);
                     }
                 }
             }
@@ -227,6 +226,7 @@ public class Game1 : Game
         {
             string text = "You Lost.";
             if(playerWon == _manager.id) text = "You Won!";
+            else if (playerWon == 0) text = "Draw.";
             _spriteBatch.DrawString(lobbyFont, text, new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2), Color.Black);
         }
 
