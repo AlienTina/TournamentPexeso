@@ -40,11 +40,11 @@ jobs:
     - name: Upload server build
       uses: actions/upload-artifact@v3
       with:
-        name: builds
+        name: server builds
         path: ${{ env.server-directory }}
         
     - name: Upload client build
       uses: actions/upload-artifact@v3
       with:
-        name: builds
+        name: client builds
         path: ${{ env.client-directory }}
