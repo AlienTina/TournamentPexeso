@@ -55,6 +55,9 @@ jobs:
       client-directory: $env:builds-directory/client-build
     
     steps:
+    - name: Debug
+      run: echo $env:server-directory
+    
     - name: Checkout
       uses: actions/checkout@v4
       with:
